@@ -13,14 +13,24 @@ class HttpClient
     JSON.parse(data.body, symbolize_names: true) if data.success?
   end
 
-  def post(url, params = {})
-    connection.post('/rest-service' + url, params)
+  def raw_get(url)
+    connection = Faraday.new(params: auth_params, headers: default_headers) do |faraday|
+      faraday.request  :url_encoded             # form-encode POST params
+      faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
+    end
+
+    data = connection.get url
+
+    JSON.parse(data.body, symbolize_names: true) if data.success?
+  end
+
+  def post(url, body = {})
+    connection.post('/rest-service' + url, body.to_json)
   end
 
   def connection
     @connection ||= Faraday.new(url: base_url, params: auth_params, headers: default_headers) do |faraday|
       faraday.request  :url_encoded             # form-encode POST params
-      faraday.response :logger                  # log requests to STDOUT
       faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
     end
   end

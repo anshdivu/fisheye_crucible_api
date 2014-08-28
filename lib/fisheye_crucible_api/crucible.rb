@@ -14,7 +14,31 @@ class Crucible
   end
 
   def create_review
+    response = client.post '/reviews-v1', review_hash
+    if response.status == 201
+      url = response.headers[:location]
+      data = client.raw_get url
+      "http://crucible01.cerner.com/cru/#{data[:permaId][:id]}"
+    else
+      response
+    end
+  end
 
+  def review_hash
+    {
+      :reviewData=>
+      {
+        :projectKey=>"PHAPPDEV-CR",
+        :name=>"Example review.",
+        :description=>"Description or statement of objectives for this example review.",
+        :author=>{:userName=>"db020377"},
+        :type=>"REVIEW",
+        :allowReviewersToJoin=>true,
+        :createDate=>"2014-07-22T11:05:32.359+0200",
+        :dueDate=>"2014-07-22T11:05:32.359+0200"
+      },
+      :patch=>"~ code to review I just added ~!!!"
+    }
   end
 end
 
